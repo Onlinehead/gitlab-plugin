@@ -41,7 +41,7 @@ class MergeRequestHookTriggerHandlerImpl extends AbstractWebHookTriggerHandler<M
 
     private final boolean skipWorkInProgressMergeRequest;
     private final Predicate<MergeRequestObjectAttributes> triggerConfig;
-    private final EnumSet<Action> skipBuiltYetCheckActions = EnumSet.of(Action.open, Action.approved);
+    private final EnumSet<Action> skipBuiltYetCheckActions = EnumSet.of(Action.open, Action.approved, Action.closed, Action.merge);
     private final EnumSet<Action> skipAllowedStateForActions = EnumSet.of(Action.approved);
     private final boolean cancelPendingBuildsOnUpdate;
 
@@ -195,6 +195,11 @@ class MergeRequestHookTriggerHandlerImpl extends AbstractWebHookTriggerHandler<M
             LOGGER.log(Level.FINEST, "Skipping LastCommitNotYetBuild check for {0} action", action);
             return true;
         }
+
+	LOGGER.log(Level.INFO, "Got state {0}", hook.getObjectAttributes().getState().toString());
+	if (StringUtils.equals("closed", objectAttributes.getState().toString()) || StringUtils.equals("merged", objectAttributes.getState().toString())) {
+		return true;
+	}
 
         Commit lastCommit = objectAttributes.getLastCommit();
         if (lastCommit == null) {
